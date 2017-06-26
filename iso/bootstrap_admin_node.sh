@@ -239,6 +239,17 @@ echo $FUEL_PACKAGES | xargs -n1 yum install -y
 # /etc/fuel_openstack_version is provided by 'fuel-openstack-metadata' package
 OPENSTACK_VERSION=$(cat /etc/fuel_openstack_version)
 
+# ENEA: Remove syslinux package dependencies for AArch64
+if [ `uname -i` == 'aarch64' ]; then
+  sed -i "s/'syslinux', //g" \
+    "/etc/puppet/${OPENSTACK_VERSION}/modules/cobbler/manifests/packages.pp"
+  mkdir -p /usr/lib/syslinux
+  mkdir -p /usr/share/syslinux
+  touch /usr/lib/syslinux/menu.c32
+  touch /usr/lib/syslinux/pxelinux.0
+  touch /usr/share/syslinux/chain.c32
+fi
+
 
 touch /var/lib/hiera/common.yaml /etc/puppet/hiera.yaml
 
