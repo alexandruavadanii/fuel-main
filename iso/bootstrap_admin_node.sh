@@ -257,6 +257,18 @@ if [ `uname -i` == 'aarch64' ]; then
   touch /usr/lib/syslinux/menu.c32
   touch /usr/lib/syslinux/pxelinux.0
   touch /usr/share/syslinux/chain.c32
+
+  # TestVM (cirros) on aarch64 requires more than 64MB RAM.
+  # Keep profiles uniform across all archs by bumping micro flavor specs.
+  # m1.micro: Increase profile RAM size to 256MB.
+  CONTROLLER_PP="/etc/puppet/${OPENSTACK_VERSION}/modules/openstack_tasks"
+  CONTROLLER_PP+="/manifests/roles/controller.pp"
+  if [ -f ${CONTROLLER_PP} ]; then
+    sed -i.bak -r \
+      's/^(.*ram.*=>)\s+[[:digit:]]+(.*)$/\1 256\2/' \
+      ${CONTROLLER_PP}
+    echo "INFO: [64] => [256] updated m1.micro profile RAM size (MB)."
+  fi
 fi
 
 
