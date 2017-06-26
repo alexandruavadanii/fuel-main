@@ -235,6 +235,15 @@ FUEL_RELEASE=$(cat /etc/fuel_release)
 # Disable online base MOS repo if we run an ISO installation
 [ -f /etc/fuel_build_id ] && yum-config-manager --disable mos${FUEL_RELEASE}* --save
 
+# ENEA: Workaround broken libcap support in httpd RPM
+# https://github.com/RoliSoft/WSL-Distribution-Switcher/issues/25
+if [ `uname -i` == 'aarch64' ]; then
+  echo -e "#include <sys/capability.h>\nint cap_set_file(const char *path_p, cap_t cap_p){return 0;}" > fakecap.c
+  yum install libcap-devel
+  gcc fakecap.c -shared -fPIC -o fakecap.so
+  LD_PRELOAD=./fakecap.so yum install -y httpd
+fi
+
 echo $FUEL_PACKAGES | xargs -n1 yum install -y
 # /etc/fuel_openstack_version is provided by 'fuel-openstack-metadata' package
 OPENSTACK_VERSION=$(cat /etc/fuel_openstack_version)
